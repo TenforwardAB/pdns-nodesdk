@@ -27,7 +27,7 @@ describe("Zones Integration Test", () => {
     let zones: Zones;
 
     const serverId = "localhost";
-    const testZoneId = "test.org."; // Zone we'll create, modify, and delete
+    const testZoneId = "test.org.";
     const apiKey = process.env.PDNS_API_KEY || 'secret';
     const apiUrl = process.env.PDNS_API_URL || 'http://localhost:8081/api/v1/';
 
@@ -39,9 +39,7 @@ describe("Zones Integration Test", () => {
 
     test("List all zones (initial)", async () => {
         const response = await zones.listZones(serverId);
-        // Verify the structure of the response
         expect(Array.isArray(response)).toBe(true);
-        // We assume at least one zone might already be present. Just check structure.
         if (response.length > 0) {
             expect(response[0]).toHaveProperty("id");
             expect(response[0]).toHaveProperty("name");
@@ -61,7 +59,6 @@ describe("Zones Integration Test", () => {
 
         const response = await zones.createZone(serverId, zoneData);
 
-        // Validate the created zone response
         expect(response).toHaveProperty("id", testZoneId);
         expect(response).toHaveProperty("kind", "Master");
         expect(response).toHaveProperty("rrsets");
@@ -71,7 +68,6 @@ describe("Zones Integration Test", () => {
     test("Get newly created zone (test.org.)", async () => {
         const response = await zones.getZone(serverId, testZoneId);
 
-        // Verify the structure of the response
         expect(response).toHaveProperty("id", testZoneId);
         expect(response).toHaveProperty("name", testZoneId);
         expect(response).toHaveProperty("kind", "Master");
@@ -82,7 +78,6 @@ describe("Zones Integration Test", () => {
 
     test("Modify the zone (test.org.) kind to Native", async () => {
         const modifyData = { kind: "Native" };
-        // modifyZone expects zoneData with fields that can be modified
         await zones.modifyZone(serverId, testZoneId, modifyData);
 
         const updatedZone = await zones.getZone(serverId, testZoneId);
@@ -90,7 +85,6 @@ describe("Zones Integration Test", () => {
     });
 
     test("Update zone RRsets for test.org.", async () => {
-        // Example: Adding an A record to www.test.org.
         const rrsetData = {
             rrsets: [
                 {
@@ -116,13 +110,11 @@ describe("Zones Integration Test", () => {
     test("Delete the zone (test.org.)", async () => {
         await zones.deleteZone(serverId, testZoneId);
 
-        // Attempting to get the zone should fail now
         await expect(zones.getZone(serverId, testZoneId)).rejects.toThrow();
     });
 
     test("List all zones (after deletion)", async () => {
         const response = await zones.listZones(serverId);
-        // test.org. should no longer be present
         const found = response.some((zone: any) => zone.id === testZoneId);
         expect(found).toBe(false);
     });
