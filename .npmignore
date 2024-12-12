@@ -2,6 +2,10 @@ node_modules
 src/
 tests/
 *.log
+.idea/
+.env
+*.tgz
 tsconfig.json
 typedoc.json
 jest.config.js
+bump_version.sh
