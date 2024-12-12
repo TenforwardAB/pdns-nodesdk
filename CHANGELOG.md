@@ -1,3 +1,6 @@
+## 0.1.1 (December 12, 2024)
+
+
 ## 0.1.0 (December 12, 2024)
   - Typos updates in readme
   - Adding new documentation for correct usage

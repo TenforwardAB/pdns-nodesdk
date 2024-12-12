@@ -1,6 +1,6 @@
 {
   "name": "pdns-nodesdk",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "license": "EUPL-1.2",
   "description": "A modular client library for interacting with the PowerDNS API.",
   "main": "dist/index.js",
