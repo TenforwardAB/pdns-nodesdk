@@ -3,7 +3,7 @@
   "out": "docs",
   "exclude": ["**/tests/**", "**/node_modules/**"],
   "tsconfig": "./tsconfig.json",
-  "name": "WildDuck-NodeSDK",
+  "name": "PDNS-NodeSDK",
   "includeVersion": true,
   "excludeExternals": true,
   "excludePrivate": true,
