@@ -29,8 +29,6 @@ describe("Servers Integration Test", () => {
     const serverId = "localhost";
 
     beforeAll(() => {
-        console.log(process.env.PDNS_API_KEY);
-        console.log(process.env.PDNS_API_URL);
         client = new ApiClient(process.env.PDNS_API_KEY as string|| 'secret', process.env.PDNS_API_URL as string||'http://localhost:8081/api/v1/');
         servers = new Servers(client);
     });

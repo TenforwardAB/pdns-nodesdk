@@ -212,6 +212,10 @@ export class ApiClient {
             const error = await response.json();
             throw new Error(`HTTP ${response.status}: ${JSON.stringify(error)}`);
         }
+        if (response.status === 204 || !response.headers.get("Content-Type")) {
+            return null;
+        }
+
 
         switch (responseType) {
             case "arraybuffer":
