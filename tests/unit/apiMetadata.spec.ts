@@ -88,7 +88,7 @@ describe("Metadata Module", () => {
 
         expect(mockClient.put).toHaveBeenCalledWith(
             "/servers/localhost/zones/example.org./metadata/ALLOW-AXFR-FROM",
-            metadataValues
+            { metadata: metadataValues }
         );
         expect(result).toEqual(mockResponse);
     });

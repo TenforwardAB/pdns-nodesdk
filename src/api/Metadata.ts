@@ -138,7 +138,14 @@ export class Metadata {
         metadataKind: string,
         metadataValues: Array<string>
     ): Promise<{ kind: string; metadata: Array<string> }> {
-        return this.client.put(`/servers/${serverId}/zones/${zoneId}/metadata/${metadataKind}`, metadataValues);
+        const payload = {
+            metadata: metadataValues,
+        };
+
+        return this.client.put(
+            `/servers/${serverId}/zones/${zoneId}/metadata/${metadataKind}`,
+            payload
+        );
     }
 
     /**
