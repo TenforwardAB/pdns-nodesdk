@@ -17,24 +17,21 @@
  */
 
 import dotenv from "dotenv";
-import { ApiClient } from "../../src/utils/ApiClient";
-import { Servers } from "../../src/api/Servers";
+import {PdnsNodeSDK} from "../../src";
 
 dotenv.config();
 
 describe("Servers Integration Test", () => {
-    let client: ApiClient;
-    let servers: Servers;
+    let pdns: PdnsNodeSDK;
 
     const serverId = "localhost";
 
     beforeAll(() => {
-        client = new ApiClient(process.env.PDNS_API_KEY as string|| 'secret', process.env.PDNS_API_URL as string||'http://localhost:8081/api/v1/');
-        servers = new Servers(client);
+        pdns = new PdnsNodeSDK(process.env.PDNS_API_KEY as string|| 'secret', process.env.PDNS_API_URL as string||'http://localhost:8081/api/v1/');
     });
 
     test("List all servers", async () => {
-        const response = await servers.listServers();
+        const response = await pdns.servers.listServers();
 
         // Verify the structure of the response
         expect(Array.isArray(response)).toBe(true);
@@ -46,7 +43,7 @@ describe("Servers Integration Test", () => {
     });
 
     test("Get server information", async () => {
-        const response = await servers.getServer(serverId);
+        const response = await pdns.servers.getServer(serverId);
 
         // Verify the structure of the response
         expect(response).toHaveProperty("id", serverId);

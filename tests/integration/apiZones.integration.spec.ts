@@ -17,14 +17,11 @@
  */
 
 import dotenv from "dotenv";
-import { ApiClient } from "../../src/utils/ApiClient";
-import { Zones } from "../../src/api/Zones";
-
+import {PdnsNodeSDK} from "../../src";
 dotenv.config();
 
 describe("Zones Integration Test", () => {
-    let client: ApiClient;
-    let zones: Zones;
+    let pdns: PdnsNodeSDK
 
     const serverId = "localhost";
     const testZoneId = "test.org.";
@@ -33,12 +30,11 @@ describe("Zones Integration Test", () => {
 
     beforeAll(() => {
 
-        client = new ApiClient(apiKey, apiUrl);
-        zones = new Zones(client);
+        pdns = new PdnsNodeSDK(apiKey, apiUrl);
     });
 
     test("List all zones (initial)", async () => {
-        const response = await zones.listZones(serverId);
+        const response = await pdns.zones.listZones(serverId);
         expect(Array.isArray(response)).toBe(true);
         if (response.length > 0) {
             expect(response[0]).toHaveProperty("id");
@@ -57,7 +53,7 @@ describe("Zones Integration Test", () => {
             nameservers: ["ns1.test.org.", "ns2.test.org."]
         };
 
-        const response = await zones.createZone(serverId, zoneData);
+        const response = await pdns.zones.createZone(serverId, zoneData);
 
         expect(response).toHaveProperty("id", testZoneId);
         expect(response).toHaveProperty("kind", "Master");
@@ -66,7 +62,7 @@ describe("Zones Integration Test", () => {
     });
 
     test("Get newly created zone (test.org.)", async () => {
-        const response = await zones.getZone(serverId, testZoneId);
+        const response = await pdns.zones.getZone(serverId, testZoneId);
 
         expect(response).toHaveProperty("id", testZoneId);
         expect(response).toHaveProperty("name", testZoneId);
@@ -78,9 +74,9 @@ describe("Zones Integration Test", () => {
 
     test("Modify the zone (test.org.) kind to Native", async () => {
         const modifyData = { kind: "Native" };
-        await zones.modifyZone(serverId, testZoneId, modifyData);
+        await pdns.zones.modifyZone(serverId, testZoneId, modifyData);
 
-        const updatedZone = await zones.getZone(serverId, testZoneId);
+        const updatedZone = await pdns.zones.getZone(serverId, testZoneId);
         expect(updatedZone).toHaveProperty("kind", "Native");
     });
 
@@ -99,22 +95,22 @@ describe("Zones Integration Test", () => {
             ]
         };
 
-        await zones.updateZoneRRsets(serverId, testZoneId, rrsetData);
+        await pdns.zones.updateZoneRRsets(serverId, testZoneId, rrsetData);
 
-        const updatedZone = await zones.getZone(serverId, testZoneId);
+        const updatedZone = await pdns.zones.getZone(serverId, testZoneId);
         const aRecord = updatedZone.rrsets.find((r: any) => r.name === "www.test.org." && r.type === "A");
         expect(aRecord).toBeDefined();
         expect(aRecord.records[0].content).toBe("192.0.2.123");
     });
 
     test("Delete the zone (test.org.)", async () => {
-        await zones.deleteZone(serverId, testZoneId);
+        await pdns.zones.deleteZone(serverId, testZoneId);
 
-        await expect(zones.getZone(serverId, testZoneId)).rejects.toThrow();
+        await expect(pdns.zones.getZone(serverId, testZoneId)).rejects.toThrow();
     });
 
     test("List all zones (after deletion)", async () => {
-        const response = await zones.listZones(serverId);
+        const response = await pdns.zones.listZones(serverId);
         const found = response.some((zone: any) => zone.id === testZoneId);
         expect(found).toBe(false);
     });

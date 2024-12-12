@@ -17,36 +17,29 @@
  */
 
 import dotenv from "dotenv";
-import { ApiClient } from "../../src/utils/ApiClient";
-import { Zones} from "../../src/api/Zones";
-import { Cryptokeys } from "../../src/api/Cryptokeys";
+import {PdnsNodeSDK} from "../../src";
+
 
 dotenv.config();
 
 describe("Cryptokeys Integration Test", () => {
-    let client: ApiClient;
-    let zones: Zones;
-    let cryptokeys: Cryptokeys;
+    let pdns: PdnsNodeSDK;
 
     const serverId = "localhost";
     const testZoneId = "test.org.";
     let cryptokeyId: number;
 
     beforeAll(async () => {
-        console.log("PDNS API Key:", process.env.PDNS_API_KEY);
-        console.log("PDNS API URL:", process.env.PDNS_API_URL);
 
-        client = new ApiClient(
+        pdns = new PdnsNodeSDK(
             process.env.PDNS_API_KEY as string || "secret",
             process.env.PDNS_API_URL as string || "http://localhost:8081/api/v1/"
         );
 
-        zones = new Zones(client);
-        cryptokeys = new Cryptokeys(client);
 
         // Create the test zone if it doesn't exist
         try {
-            await zones.createZone(serverId, {
+            await pdns.zones.createZone(serverId, {
                 name: testZoneId,
                 kind: "MASTER",
                 nameservers: ["ns1.test.org.", "ns2.test.org."],
@@ -59,7 +52,7 @@ describe("Cryptokeys Integration Test", () => {
     afterAll(async () => {
         // Clean up by deleting the test zone
         try {
-            await zones.deleteZone(serverId, testZoneId);
+            await pdns.zones.deleteZone(serverId, testZoneId);
         } catch (error) {
             console.warn(`Zone ${testZoneId} could not be deleted:`);
         }
@@ -74,7 +67,7 @@ describe("Cryptokeys Integration Test", () => {
             bits: 256,
         };
 
-        const response = await cryptokeys.createKey(serverId, testZoneId, keyData);
+        const response = await pdns.cryptokeys.createKey(serverId, testZoneId, keyData);
 
 
         expect(response).toHaveProperty("id");
@@ -88,7 +81,7 @@ describe("Cryptokeys Integration Test", () => {
 
 
     test("List all cryptokeys for the zone", async () => {
-        const response = await cryptokeys.listKeys(serverId, testZoneId);
+        const response = await pdns.cryptokeys.listKeys(serverId, testZoneId);
 
         expect(Array.isArray(response)).toBe(true);
         if (response.length > 0) {
@@ -101,7 +94,7 @@ describe("Cryptokeys Integration Test", () => {
     });
 
     test("Retrieve a specific cryptokey", async () => {
-        const response = await cryptokeys.getKey(serverId, testZoneId, cryptokeyId);
+        const response = await pdns.cryptokeys.getKey(serverId, testZoneId, cryptokeyId);
 
         expect(response).toHaveProperty("id", cryptokeyId);
         expect(response).toHaveProperty("keytype", "csk");
@@ -114,21 +107,21 @@ describe("Cryptokeys Integration Test", () => {
     test("Modify the cryptokey", async () => {
         const updateData = { active: false };
 
-        await cryptokeys.updateKey(serverId, testZoneId, cryptokeyId, updateData);
+        await pdns.cryptokeys.updateKey(serverId, testZoneId, cryptokeyId, updateData);
 
-        const updatedKey = await cryptokeys.getKey(serverId, testZoneId, cryptokeyId);
+        const updatedKey = await pdns.cryptokeys.getKey(serverId, testZoneId, cryptokeyId);
 
         expect(updatedKey).toHaveProperty("id", cryptokeyId);
         expect(updatedKey).toHaveProperty("active", false);
     });
 
     test("Delete the cryptokey", async () => {
-        const response = await cryptokeys.deleteKey(serverId, testZoneId, cryptokeyId);
+        const response = await pdns.cryptokeys.deleteKey(serverId, testZoneId, cryptokeyId);
 
         expect(response).toBeNull();
 
         await expect(
-            cryptokeys.getKey(serverId, testZoneId, cryptokeyId)
+            pdns.cryptokeys.getKey(serverId, testZoneId, cryptokeyId)
         ).rejects.toThrow();
     });
 });
