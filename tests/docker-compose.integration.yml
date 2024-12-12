@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  pdns:
+    image: powerdns/pdns-auth-master
+    container_name: pdns-integration
+    ports:
+      - "5300:53"         # Bind to port 5300 for DNS queries
+      - "5300:53/udp"     # Bind to port 5300 for DNS queries (UDP)
+      - "8081:8081"       # Bind to port 8081 for API
+    environment:
+      - PDNS_gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      - PDNS_launch=gsqlite3
+      - PDNS_API=yes
+      - PDNS_API_KEY=secret
+      - PDNS_DEFAULT_ZONE_TYPE=master
+      - PDNS_MASTER=yes
+      - PDNS_ALLOW_AXFR_IPS=127.0.0.1
+      - PDNS_LOCAL_PORT=53
+    volumes:
+      - ./config/pdns.sqlite3:/var/lib/powerdns/pdns.sqlite3:rw     # Map the entire directory
+      - ./config/pdns.conf:/etc/powerdns/pdns.conf:ro
+    networks:
+      pdns-test-network:
+        aliases:
+          - pdns
+    user: root  # Run as root user
+    working_dir: /var/lib/powerdns
+
+networks:
+  pdns-test-network:
+    driver: bridge
