@@ -1,90 +1,205 @@
+# PowerDNS Node.js SDK (pdns-nodesdk)
 
-# WildDuck-NodeSDK
+A Node.js library for interacting with the PowerDNS API. This SDK simplifies operations with PowerDNS, 
+providing easy-to-use methods for managing servers, zones, cryptokeys, metadata, TSIG keys, and more.
 
-A lightweight and modular client library for interacting with the WildDuck API, designed for Node.js applications. This library simplifies API interactions by providing easy-to-use modules for authentication and other operations, enabling seamless integration into your email infrastructure.
-
----
-
-## Features
-
-- Modular design for different API operations.
-- Authentication using `X-Access-Token`.
-- Simple and extensible structure for future API extensions.
-- Fully written in TypeScript.
+Whether you're a seasoned developer or just starting out, `pdns-nodesdk` allows you to seamlessly integrate with 
+PowerDNS, giving you the power to manage DNS zones and configurations programmatically.
 
 ---
 
 ## Installation
 
-Install the library using npm:
+Install the SDK via npm:
 
 ```bash
-npm install wildduck-nodesdk
+npm install pdns-nodesdk
 ```
 
 ---
 
 ## Usage
 
-### Importing the Library
+### Setting Up
 
-To use the library, first import and initialize it with your WildDuck API key and base URL:
+Import the SDK and initialize it with your PowerDNS API key and base URL:
 
 ```typescript
-import { WildDuck-NodeSDK } from "wildduck-nodesdk";
+import { ApiClient, Zones, Servers } from "pdns-nodesdk";
 
-const api = new WildDuck-NodeSDK("YOUR_API_KEY", "https://api.example.com");
+const apiKey = "your-api-key";
+const apiUrl = "http://localhost:8081/api/v1/"; // Update with your PowerDNS API URL
+
+const client = new ApiClient(apiKey, apiUrl);
+const zones = new Zones(client);
+const servers = new Servers(client);
 ```
 
-### Authentication
+### Example Use Cases
 
-The `authentication` module provides methods for handling authentication-related operations. For example:
-
-#### Pre-authentication
-
-Check if a username exists and can be authenticated:
+#### List All Servers
 
 ```typescript
-const response = await api.authentication.preAuth("user@example.com", "imap");
-console.log("Pre-auth response:", response);
+(async () => {
+    const serverList = await servers.listServers();
+    console.log(serverList);
+})();
 ```
 
-#### Authenticate a User
-
-Authenticate a user and optionally generate a token:
+#### Get Server Information
 
 ```typescript
-const authResponse = await api.authentication.authenticate(
-  "user@example.com",
-  "password123",
-  "imap"
-);
-console.log("Authentication response:", authResponse);
+(async () => {
+    const serverId = "localhost";
+    const serverInfo = await servers.getServer(serverId);
+    console.log(serverInfo);
+})();
 ```
 
-#### Invalidate an Authentication Token
-
-Invalidate the current access token:
+#### Create a New Zone
 
 ```typescript
-const invalidateResponse = await api.authentication.invalidateToken();
-console.log("Token invalidation response:", invalidateResponse);
+(async () => {
+    const serverId = "localhost";
+    const zoneData = {
+        name: "example.org.",
+        kind: "Master",
+        nameservers: ["ns1.example.org.", "ns2.example.org."]
+    };
+
+    const newZone = await zones.createZone(serverId, zoneData);
+    console.log(newZone);
+})();
+```
+
+#### Modify Zone RRsets
+
+```typescript
+(async () => {
+    const serverId = "localhost";
+    const zoneId = "example.org.";
+    const rrsetData = {
+        rrsets: [
+            {
+                name: "www.example.org.",
+                type: "A",
+                ttl: 3600,
+                changetype: "REPLACE",
+                records: [
+                    { content: "192.0.2.1", disabled: false }
+                ]
+            }
+        ]
+    };
+
+    await zones.updateZoneRRsets(serverId, zoneId, rrsetData);
+})();
+```
+
+#### Delete a Zone
+
+```typescript
+(async () => {
+    const serverId = "localhost";
+    const zoneId = "example.org.";
+
+    await zones.deleteZone(serverId, zoneId);
+})();
+```
+
+#### Create a Cryptokey
+
+```typescript
+(async () => {
+    const serverId = "localhost";
+    const zoneId = "example.org.";
+    const keyData = {
+        keytype: "KSK",
+        active: true,
+        algorithm: "ECDSAP256SHA256",
+        bits: 256
+    };
+
+    const cryptokey = await cryptokeys.createKey(serverId, zoneId, keyData);
+    console.log(cryptokey);
+})();
+```
+
+#### Flush Cache
+
+```typescript
+(async () => {
+    const serverId = "localhost";
+    const domain = "example.org.";
+
+    const cacheFlushResult = await cache.flushCache(serverId, domain);
+    console.log(cacheFlushResult);
+})();
 ```
 
 ---
 
-## Example Project Structure
+## Advanced Usage
 
-Here’s an example of how you can organize your project when using `WildDuck-NodeSDK`:
+### Custom Configuration
 
+You can modify the client’s behavior by passing additional headers or configuring timeouts:
+
+```typescript
+const client = new ApiClient(apiKey, apiUrl, {
+    headers: { "Custom-Header": "value" },
+    timeout: 5000 // 5 seconds
+});
 ```
-my-project/
-├── src/
-│   ├── index.ts            # Your application's entry point
-│   ├── services/
-│   │   ├── wildduck.ts     # WildDuck-NodeSDK initialization
-├── package.json            # Project configuration
-├── tsconfig.json           # TypeScript configuration
+
+### Error Handling
+
+Handle API errors using try-catch blocks:
+
+```typescript
+(async () => {
+    try {
+        const serverInfo = await servers.getServer("invalid-server");
+    } catch (error) {
+        console.error("Error:", error.message);
+    }
+})();
+```
+
+---
+
+## Testing
+
+### Integration Tests
+
+We encourage the community to contribute more integration test cases to cover additional scenarios. Comprehensive testing ensures the reliability and robustness of this SDK.
+
+Run integration tests for the SDK:
+
+```bash
+npm run test:integration
+```
+
+### Using Docker for Testing
+
+To facilitate integration tests, we provide a Docker setup for spinning up a minimal PowerDNS instance with SQLite as the backend. This container mimics a real PowerDNS server and allows you to test the SDK in a controlled environment.
+
+#### Start the Docker Container
+
+Use the following command to spin up the container:
+
+```bash
+npm run start:docker:test
+```
+
+This command starts a container with PowerDNS configured to use an SQLite database. The configuration includes an example zone to ensure the tests run smoothly.
+
+#### Stop the Docker Container
+
+After running your tests, clean up by stopping the container:
+
+```bash
+npm run stop:docker:test
 ```
 
 ---

@@ -113,7 +113,7 @@ describe("Cryptokeys Integration Test", () => {
 
     test("Modify the cryptokey", async () => {
         const updateData = { active: false };
-        
+
         await cryptokeys.updateKey(serverId, testZoneId, cryptokeyId, updateData);
 
         const updatedKey = await cryptokeys.getKey(serverId, testZoneId, cryptokeyId);
